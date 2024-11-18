@@ -6,7 +6,7 @@ import BlogPage from './components/BlogPage';
 function App() {
   return (
     <>
-    <Navbar/>
+      <Navbar/>
       <Navigation/>
       <Blogs/>
     </>

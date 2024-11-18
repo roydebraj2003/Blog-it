@@ -15,7 +15,7 @@ export default function Navbar() {
       </a>
       <div className="ml-auto d-flex">
       <button className="btn btn-outline-dark btn-sm mx-1">Sign In</button>
-      <button className="btn btn-outline-dark btn-sm mx-2">Register</button>
+      <button className="btn btn-outline-dark btn-sm mx-1">Register</button>
       </div>
     </nav>
   );
