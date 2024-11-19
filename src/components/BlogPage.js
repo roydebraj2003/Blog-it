@@ -1,10 +1,18 @@
-import React, { useState } from 'react';
-import blogs from './Blogs';
+import React, { useEffect, useState } from 'react';
 import Blog from './Blog';
+import Navbar from './Navbar';
+import Navigation from './Navigation';
 
-
-function BlogPage() {
+const Blogs = () => {
+  const [blogs, setBlogs] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    fetch('http://localhost:5000/home/blogs')
+      .then(response => response.json())
+      .then(data => setBlogs(data))
+      .catch(error => console.error("Error fetching blogs:", error));
+  }, []);
 
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
@@ -15,9 +23,26 @@ function BlogPage() {
   );
 
   return (
-    <div className="blogs-container">
-      {/* Search Section */}
-      <div className="search-section" style={{ marginBottom: '20px' }}>
+    <>
+       <Navbar/>
+       <Navigation/>
+    <div
+      className="blogs-container"
+      style={{
+        flex: 1,
+        padding: '20px',
+        marginLeft: '205px',
+        backgroundColor: '#f9f9f9',
+        marginTop: '30px',
+        marginBottom: '20px',
+    
+        height: 'calc(100vh - 20px)',
+      }}
+    >
+      <h3 className="text-center" style={{ marginBottom: '20px' }}>
+        Explore Our Latest Blogs
+      </h3>
+      <div className="search-section" style={{ marginBottom: '15px' }}>
         <input
           type="text"
           className="search-input"
@@ -26,39 +51,34 @@ function BlogPage() {
           onChange={handleSearchChange}
           style={{
             width: '100%',
-            padding: '10px',
-            borderRadius: '5px',
-            border: '1px solid #ddd',
+            padding: '8px',
           }}
         />
       </div>
 
-      {/* Option to Write Blog */}
       <div className="write-blog-section" style={{ marginBottom: '20px' }}>
-        <button
-          className="write-blog-button"
-          onClick={() => alert('Redirect to blog writing page')}
-          style={{
-            padding: '10px 20px',
-            backgroundColor: '#007bff',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer',
-          }}
+      <button
+          className="btn btn-dark"
+          style={{ padding: '10px 20px' }}
         >
           Write Your Blog
         </button>
       </div>
-
-      {/* Blog List Section */}
-      <div className="blog-list" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
+      <div
+        className="blog-list"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+          gap: '15px',
+        }}
+      >
         {filteredBlogs.map((blog) => (
           <Blog key={blog._id} blog={blog} />
         ))}
       </div>
     </div>
+    </>
   );
-}
+};
 
-export default BlogPage;
+export default Blogs;
