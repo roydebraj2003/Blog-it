@@ -1,0 +1,113 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String      @id @default(cuid())
+  name              String?
+  username          String?     @unique
+  email             String?     @unique
+  emailVerified     DateTime?
+  image             String?
+  bio               String?
+  votes             Vote[]
+  posts             Post[]
+  comments          Comment[]
+  accounts          Account[]
+  sessions          Session[]
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+}
+
+model Account {
+  id                 String   @id @default(cuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String?   
+  access_token       String?   
+  expires_at         Int?     
+  token_type         String?
+  scope              String?
+  id_token           String?
+  session_state      String?
+  user               User    @relation(fields: [userId], references: [id])
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  userId       String
+  sessionToken String   @unique
+  accessToken  String?   @unique
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model VerificationRequest {
+  id         String   @id @default(cuid())
+  identifier String
+  token      String   @unique
+  expires    DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([identifier, token])
+}
+
+model Post {
+  id            String    @id @default(uuid())
+  title         String
+  description   String
+  body          String
+  votes         Vote[]
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+  comments      Comment[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Vote {
+  id            String    @id @default(uuid())
+  userId        String
+  postId        String?
+  commentId     String?
+  type          voteType
+  createdAt     DateTime  @default(now())
+  user          User      @relation(fields: [userId], references: [id])
+  post          Post?     @relation(fields: [postId], references: [id])
+  comment       Comment?  @relation(fields: [commentId], references: [id])
+
+  @@unique([userId, postId])
+  @@unique([userId, commentId])
+}
+
+enum voteType {
+  UP
+  DOWN
+}
+
+model Comment {
+  id            String    @id @default(uuid())
+  body          String
+  postId        String
+  userId        String
+  votes         Vote[]
+  post          Post      @relation(fields: [postId], references: [id])
+  user          User      @relation(fields: [userId], references: [id])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
