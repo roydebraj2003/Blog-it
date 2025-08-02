@@ -19,11 +19,11 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   const session = await getServerSession(authOptions);
-
+  
   if (!session?.user) {
     return NextResponse.json({ message: "Unauthorized", comment: null }, { status: 401 });
   }
-
+  
   const parsed = CreateCommentSchema.safeParse(await req.json());
   if (!parsed.success) {
     const tree = z.treeifyError(parsed.error);
