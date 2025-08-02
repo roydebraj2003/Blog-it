@@ -21,15 +21,20 @@ export async function POST(
   const session = await getServerSession(authOptions);
 
   if (!session?.user) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ message: "Unauthorized", comment: null }, { status: 401 });
   }
 
   const parsed = CreateCommentSchema.safeParse(await req.json());
   if (!parsed.success) {
-    return NextResponse.json(
-      { message: parsed.error.format() },
-      { status: 400 }
-    );
+    const tree = z.treeifyError(parsed.error);
+    return NextResponse.json({
+      message: "Validation failed",
+      errors: {
+        body: tree.properties?.body?.errors
+      }
+    }, {
+      status: 400
+    })
   }
   const postId = params.id;
 
@@ -49,7 +54,7 @@ export async function POST(
   } catch (err) {
     console.error(err);
     return NextResponse.json(
-      { message: "Failed to create comment" },
+      { message: "Failed to create comment", comment: null },
       { status: 500 }
     );
   }

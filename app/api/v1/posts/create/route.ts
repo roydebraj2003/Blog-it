@@ -11,27 +11,28 @@ const CreatePostSchema = z.object({
   description: z
     .string()
     .max(150, { message: "Description should be below 150 characters" }),
-  body: z
-    .string()
-    .max(10000, {
-      message: "Post body is too long (must be under 10000 characters)",
-    }),
+  body: z.string().max(10000, {
+    message: "Post body is too long (must be under 10000 characters)",
+  }),
 });
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session?.user) {
-    return NextResponse.json({
-      message: "User unauthorized!",
-      status: 401,
-    });
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
+  
   const parsed = CreatePostSchema.safeParse(await req.json());
   if (!parsed.success) {
-    return NextResponse.json(
-      { message: parsed.error.format() },
-      { status: 400 }
-    );
+    const tree = z.treeifyError(parsed.error)
+    return NextResponse.json({
+      message: "Validation failed",
+      errors: {
+        title: tree.properties?.title,
+        description: tree.properties?.description,
+        body: tree.properties?.body
+      }
+    });
   }
   try {
     await prismaClient.post.create({

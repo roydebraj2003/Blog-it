@@ -11,58 +11,54 @@ export async function POST(
   const postId = params.id;
   try {
     if (!session?.user) {
-        return NextResponse.json({
-          message: "User unauthorized",
-          status: 401,
-        });
-      }
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
     const existingVote = await prismaClient.vote.findUnique({
-        where: {
-            userId_postId: {
-                userId: session?.user.id as string,
-                postId
-            }
-        }
-    })
+      where: {
+        userId_postId: {
+          userId: session?.user.id as string,
+          postId,
+        },
+      },
+    });
 
     if (!existingVote) {
-        await prismaClient.vote.create({
-          data: {
+      await prismaClient.vote.create({
+        data: {
+          userId: session.user.id,
+          postId,
+          type: "DOWN",
+        },
+      });
+      return NextResponse.json({ message: "Post upvoted" });
+    }
+
+    if (existingVote.type === "DOWN") {
+      await prismaClient.vote.delete({
+        where: {
+          userId_postId: {
             userId: session.user.id,
             postId,
-            type: "DOWN",
           },
-        });
-        return NextResponse.json({ message: "Post upvoted" });
-      }
+        },
+      });
+      return NextResponse.json({ message: "Upvote deleted" });
+    }
 
-      if(existingVote.type === 'DOWN') {
-        await prismaClient.vote.delete({
-            where: {
-                userId_postId: {
-                    userId: session.user.id,
-                    postId
-                }
-            }
-        })
-        return NextResponse.json({ message: "Upvote deleted"})
-      }
-
-      if(existingVote.type === 'UP') {
-        await prismaClient.vote.update({
-            where: {
-                userId_postId: {
-                    userId: session.user.id,
-                    postId
-                }
-            },
-            data: {
-                type: 'DOWN'
-            }
-        })
-        return NextResponse.json({ message: "Post downvoted" });
-      }
-
+    if (existingVote.type === "UP") {
+      await prismaClient.vote.update({
+        where: {
+          userId_postId: {
+            userId: session.user.id,
+            postId,
+          },
+        },
+        data: {
+          type: "DOWN",
+        },
+      });
+      return NextResponse.json({ message: "Post downvoted" });
+    }
   } catch (error) {
     console.error(error);
     return NextResponse.json(
