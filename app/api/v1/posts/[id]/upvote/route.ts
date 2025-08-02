@@ -9,14 +9,16 @@ export async function POST(
 ) {
   const session = await getServerSession(authOptions);
   const postId = params.id;
+
+  if (!session?.user) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
   try {
-    if (!session?.user) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    }
     const existingVote = await prismaClient.vote.findUnique({
       where: {
         userId_postId: {
-          userId: session?.user.id as string,
+          userId: session.user.id,
           postId,
         },
       },
@@ -30,6 +32,15 @@ export async function POST(
           type: "UP",
         },
       });
+
+      await prismaClient.post.update({
+        where: { id: postId },
+        data: {
+          upvotes: { increment: 1 },
+          totalVotes: { increment: 1 },
+        },
+      });
+
       return NextResponse.json({ message: "Post upvoted" });
     }
 
@@ -42,7 +53,16 @@ export async function POST(
           },
         },
       });
-      return NextResponse.json({ message: "Upvote deleted" });
+
+      await prismaClient.post.update({
+        where: { id: postId },
+        data: {
+          upvotes: { decrement: 1 },
+          totalVotes: { decrement: 1 },
+        },
+      });
+
+      return NextResponse.json({ message: "Upvote removed" });
     }
 
     if (existingVote.type === "DOWN") {
@@ -57,10 +77,19 @@ export async function POST(
           type: "UP",
         },
       });
+
+      await prismaClient.post.update({
+        where: { id: postId },
+        data: {
+          upvotes: { increment: 1 },
+          totalVotes: { increment: 1 },
+        },
+      });
+
       return NextResponse.json({ message: "Post upvoted" });
     }
   } catch (error) {
-    console.error(error);
+    console.error("Failed to upvote post:", error);
     return NextResponse.json(
       { message: "Failed to upvote post" },
       { status: 500 }

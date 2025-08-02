@@ -73,6 +73,8 @@ model Post {
   description   String
   body          String
   votes         Vote[]
+  upvotes       Int?
+  totalVotes    Int?      //upvotes + downvotes : basically for the trending post api
   userId        String
   user          User      @relation(fields: [userId], references: [id])
   comments      Comment[]

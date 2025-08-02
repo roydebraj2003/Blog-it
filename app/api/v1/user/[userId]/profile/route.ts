@@ -53,7 +53,12 @@ export async function GET(
         id: userId,
       },
       include: {
-        posts: true,
+        posts: {
+          include : {
+            comments: true,
+            votes: true
+          }
+        },
         comments: true,
       },
     });
@@ -118,9 +123,11 @@ export async function PATCH(
           username: tree.properties?.username?.errors,
           bio: tree.properties?.bio?.errors,
           image: tree.properties?.image?.errors,
-        }}, {
-          status: 400
-        }
+        },
+      },
+      {
+        status: 400,
+      }
     );
   }
 
